@@ -1,4 +1,12 @@
 require 'redmine'
+require 'dispatcher'
+
+#redmine patches
+require 'issue_patch'
+
+Dispatcher.to_prepare do
+  Issue.send(:include, PPEE::IssuePatch)
+end
 
 Redmine::Plugin.register :redmine_ppee do
   name 'Redmine Ppee plugin'
