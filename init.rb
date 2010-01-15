@@ -3,9 +3,11 @@ require 'dispatcher'
 
 #redmine patches
 require 'issue_patch'
+require 'issues_controller_patch'
 
 Dispatcher.to_prepare do
   Issue.send(:include, PPEE::IssuePatch)
+  IssuesController.send(:include, PPEE::IssuesControllerPatch)
 end
 
 Redmine::Plugin.register :redmine_ppee do
