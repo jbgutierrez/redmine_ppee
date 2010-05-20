@@ -22,7 +22,7 @@ module PPEE
       def edit_with_warnings
         edit_without_warnings
         if request.post?
-          flash[:message] = "En el estado en el que está debería tener un versión fijada"  if @issue.fixed_version.nil? and !@issue.fixed_version.estado_original?
+          flash[:message] = "En el estado en el que está debería tener un versión fijada"  if @issue.fixed_version.blank? and !@issue.is_original?
         end
       end
     end
