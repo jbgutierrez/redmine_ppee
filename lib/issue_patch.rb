@@ -7,14 +7,13 @@ module PPEE
       base.class_eval do
         include InstanceMethods
         validates_presence_of :start_date,             :unless => :is_original?
-        validates_presence_of :estimated_hours,        :unless => :is_original?
+        validates_presence_of :fixed_version_id,       :unless => :is_original?
         validates_presence_of :due_date,               :if => :is_closed?
         before_validation :ensure_assigned_to,         :if => :is_leaving_original?
         before_validation :refresh_start_date,         :if => :is_leaving_original?
         before_validation :refresh_due_date,           :if => :is_entering_closed?
         before_validation :refresh_done_ratio,         :if => :status_id_changed?
         validate :validate_ratio_done_value
-        validate :validate_has_at_least_on_time_entry, :if => :is_closed?
         alias_method_chain :after_initialize, :custom_values
       end
     end
@@ -23,7 +22,7 @@ module PPEE
 
       def documento_soporte
         @@id_documento_soporte ||= CustomField.find_by_name("Documento de soporte").id
-        custom_field_values[@@id_documento_soporte].value
+        custom_field_values[@@id_documento_soporte].value rescue ""
       end
       
       def is_leaving_original?
@@ -55,12 +54,6 @@ module PPEE
           errors.add_to_base expected_range.class == Range ?
             "El porcentaje realizado debe estar entre #{expected_range.min} y #{expected_range.max}" :
             "El porcentaje realizado debe ser #{expected_range}"
-        end
-      end
-
-      def validate_has_at_least_on_time_entry
-        if time_entries.empty?
-          errors.add_to_base "Primero debes imputar las horas reales"
         end
       end
 
@@ -99,7 +92,7 @@ module PPEE
       COMENTARIOS = 8
 
       # Pesos de avance de trabajo
-      EXPECTED_DONE_RATIO_RANGES = { ORIGINAL => 0, ACEPTADA => 0, ASIGNADA => 10..80, EN_PRUEBAS => 90, CERRADA => 100, RECHAZADA => 0 }
+      EXPECTED_DONE_RATIO_RANGES = { ORIGINAL => 0, ACEPTADA => 0, ASIGNADA => 10..80, EN_PRUEBAS => 90, CERRADA => 100, RECHAZADA => 0, COMENTARIOS => 0..100 }
 
       # Plantilla por defecto para la descripcion de la incidencia
       DESCRIPTION_TEMPLATE =<<EOS
