@@ -3,22 +3,33 @@ require_dependency 'issue'
 module PPEE
   module IssuePatch
 
-  def self.included(base)
+    def self.included(base)
       base.class_eval do
         include InstanceMethods
-        validates_presence_of :start_date,             :unless => :is_original?
-        validates_presence_of :fixed_version_id,       :unless => :is_original?
-        validates_presence_of :due_date,               :if => :is_closed?
-        before_validation :ensure_assigned_to,         :if => :is_leaving_original?
-        before_validation :refresh_start_date,         :if => :is_leaving_original?
-        before_validation :refresh_due_date,           :if => :is_entering_closed?
-        before_validation :refresh_done_ratio,         :if => :status_id_changed?
-        validate :validate_ratio_done_value
+                
+        def self.filter_by_project(options)
+          clause, method = options.keys.first, options.values.first.to_s
+          condition = "Proc.new { |issue| #{clause == :if ? '' : '!' }issue.ppee_module_enabled? && issue.#{method} }"
+          { clause => eval(condition) }
+        end
+        
+        validates_presence_of :start_date,       filter_by_project(:unless => :is_original?)
+        validates_presence_of :fixed_version_id, filter_by_project(:unless => :is_original?)
+        validates_presence_of :due_date,         filter_by_project(:if => :is_closed?)
+        before_validation :ensure_assigned_to,   filter_by_project(:if => :is_leaving_original?)
+        before_validation :refresh_start_date,   filter_by_project(:if => :is_leaving_original?)
+        before_validation :refresh_due_date,     filter_by_project(:if => :is_entering_closed?)
+        before_validation :refresh_done_ratio,   filter_by_project(:if => :status_id_changed?)
+        validate :validate_ratio_done_value,     :if => :ppee_module_enabled?
         alias_method_chain :after_initialize, :custom_values
       end
     end
 
     module InstanceMethods
+      
+      def ppee_module_enabled?
+        self.project.module_enabled?(:programas_especiales)
+      end
 
       def documento_soporte
         @@id_documento_soporte ||= CustomField.find_by_name("Documento de soporte").id
@@ -45,6 +56,7 @@ module PPEE
 
       def after_initialize_with_custom_values
         after_initialize_without_custom_values
+        return unless self.ppee_module_enabled?
         self.description ||= CONST::DESCRIPTION_TEMPLATE
       end
 

@@ -11,8 +11,11 @@ Dispatcher.to_prepare do
 end
 
 Redmine::Plugin.register :redmine_ppee do
-  name 'Redmine Ppee plugin'
-  author 'Author name'
-  description 'This is a plugin for Redmine'
+  name 'Redmine PPEE plugin'
+  author 'Javier Blanco Gutiérrez'
+  description 'Plugin de redmine con personalizaciones específicas para el proyecto PPEE'
   version '0.0.1'
+  project_module :programas_especiales do
+    permission :programas_especiales, :programas_especiales => :index
+  end
 end
