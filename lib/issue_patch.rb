@@ -6,13 +6,13 @@ module PPEE
     def self.included(base)
       base.class_eval do
         include InstanceMethods
-                
+
         def self.filter_by_project(options)
           clause, method = options.keys.first, options.values.first.to_s
           condition = "Proc.new { |issue| #{clause == :if ? '' : '!' }issue.ppee_module_enabled? && issue.#{method} }"
           { clause => eval(condition) }
         end
-        
+
         validates_presence_of :start_date,       filter_by_project(:unless => :is_original?)
         validates_presence_of :fixed_version_id, filter_by_project(:unless => :is_original?)
         validates_presence_of :due_date,         filter_by_project(:if => :is_closed?)
@@ -26,7 +26,7 @@ module PPEE
     end
 
     module InstanceMethods
-      
+
       def ppee_module_enabled?
         self.project.module_enabled?(:programas_especiales)
       end
@@ -35,7 +35,7 @@ module PPEE
         @@id_documento_soporte ||= CustomField.find_by_name("Documento de soporte").id
         custom_field_values[@@id_documento_soporte].value rescue ""
       end
-      
+
       def is_leaving_original?
         status_id_changed? && status_id_was == CONST::ORIGINAL
       end
@@ -56,7 +56,7 @@ module PPEE
 
       def after_initialize_with_custom_values
         after_initialize_without_custom_values
-        return unless self.ppee_module_enabled?
+        # return unless self.ppee_module_enabled?
         self.description ||= CONST::DESCRIPTION_TEMPLATE
       end
 

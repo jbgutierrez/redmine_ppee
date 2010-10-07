@@ -1,4 +1,4 @@
-require 'application'
+require 'application_controller'
 require 'rfpdf/fpdf'
 require_dependency 'issues_controller'
 
